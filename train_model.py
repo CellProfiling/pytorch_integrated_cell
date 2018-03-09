@@ -11,6 +11,9 @@ import pickle
 import math
 
 import torch
+print("Torch can identify gpu:"+ str(torch.cuda.is_available()))
+print("Number of visible devices:" + str(torch.cuda.device_count()))
+
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
@@ -89,10 +92,15 @@ if not os.path.exists(opt.save_dir):
 if opt.nepochs_pt2 == -1:
     opt.nepochs_pt2 = opt.nepochs
 
+print('make save_directory and add number of epocs')
+
 dp = model_utils.load_data_provider(opt.data_save_path, opt.imdir, opt.dataProvider)
-    
+print('done loading data provider')
+
 if opt.ndat == -1:
     opt.ndat = dp.get_n_dat('train')
+print('Number of training data',opt.ndat)
+print('Number of testing data',dp.get_n_dat('test'))
 
 iters_per_epoch = np.ceil(opt.ndat/opt.batch_size)    
             
@@ -111,11 +119,19 @@ opt.nch = len(opt.channelInds)
 opt.nClasses = 0
 opt.nRef = 0
 
-try:    
-    train_module = importlib.import_module("train_modules." + opt.train_module)
-    train_module = train_module.trainer(dp, opt)
+try:
+    train_module=importlib.import_module('train_modules.' + opt.train_module)
+    train_module=train_module.trainer(dp, opt)
 except:
-    pass    
+    pass
+#try:    
+#    train_module = importlib.import_module("train_modules." + opt.train_module)
+#    print('attribute training module')
+#    breakme
+#    train_module = train_module.trainer(dp, opt)
+#    print('load training module')
+#except:
+#    pass    
 
 pickle.dump(opt, open('./{0}/opt.pkl'.format(opt.save_dir), 'wb'))
 
