@@ -11,8 +11,8 @@ import pickle
 import math
 
 import torch
-print("Torch can identify gpu:"+ str(torch.cuda.is_available()))
-print("Number of visible devices:" + str(torch.cuda.device_count()))
+print("Torch can identify gpu: "+ str(torch.cuda.is_available()))
+print("Number of visible devices: " + str(torch.cuda.device_count()))
 
 import torch.nn as nn
 import torch.optim as optim
@@ -23,7 +23,7 @@ import torchvision.utils
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from IPython import display
+#from IPython import display
 import time
 
 import model_utils
@@ -74,8 +74,11 @@ parser.add_argument('--dtype', default='float', help='data type that the datapro
 opt = parser.parse_args()
 print(opt)
 
-os.environ['CUDA_VISIBLE_DEVICES'] = ','.join([str(ID) for ID in opt.gpu_ids])
-opt.gpu_ids = list(range(0, len(opt.gpu_ids)))
+use_gpu = torch.cuda.is_available()
+
+if use_gpu:
+    os.environ['CUDA_VISIBLE_DEVICES'] = ','.join([str(ID) for ID in opt.gpu_ids])
+    opt.gpu_ids = list(range(0, len(opt.gpu_ids)))
 
 opt.save_parent = opt.save_dir
 
@@ -119,19 +122,10 @@ opt.nch = len(opt.channelInds)
 opt.nClasses = 0
 opt.nRef = 0
 
-try:
-    train_module=importlib.import_module('train_modules.' + opt.train_module)
-    train_module=train_module.trainer(dp, opt)
-except:
-    pass
-#try:    
-#    train_module = importlib.import_module("train_modules." + opt.train_module)
-#    print('attribute training module')
-#    breakme
-#    train_module = train_module.trainer(dp, opt)
-#    print('load training module')
-#except:
-#    pass    
+train_module = importlib.import_module("train_modules." + opt.train_module)
+print('attribute training module')
+train_module = train_module.trainer(dp, opt)
+print('load training module')
 
 pickle.dump(opt, open('./{0}/opt.pkl'.format(opt.save_dir), 'wb'))
 
