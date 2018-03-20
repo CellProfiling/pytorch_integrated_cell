@@ -68,8 +68,8 @@ class DataProvider(DataProviderABC):
     def load_h5(self, h5_path):
         f = h5py.File(h5_path,'r')
 
-        image=f['image'].value
-        image=image.astype('double')/255
+        image=f['image'].value[self.opts["channelInds"]]
+        image=image.astype('double')
 
         return image
 
@@ -93,19 +93,19 @@ class DataProvider(DataProviderABC):
         
         images = torch.zeros(tuple(dims))
         
-        if self.opts['dtype'] == 'half':
-            images = images.type(torch.HalfTensor)
+#        if self.opts['dtype'] == 'half':
+#            images = images.type(torch.HalfTensor)
             
         c = 0
         for i in inds:
             h5_path = self.image_paths[self.data[train_or_test]['inds'][i]]
-            image = load_h5(h5_path)
+            image = self.load_h5(h5_path)
             images[i] = torch.from_numpy(image)
-#            images[c] = image.index_select(0, torch.LongTensor(self.opts['channelInds'])).clone()
+#           images[c] = image.index_select(0, torch.LongTensor(self.opts['channelInds'])).clone()
             c += 1
 
         if self.opts['verbose']:
-            print('{0}/{1} files are loaded'.format(c,len(image_paths)))
+            print('{0}/{1} files are loaded'.format(c,len(self.image_paths)))
         # images *= 2
         # images -= 1
         
