@@ -3,8 +3,8 @@ import torch
 import pdb
 from model_utils import init_opts
 
-ksize = 4
-dstep = 2
+ksize = (1,4,4)
+dstep = (1,2,2)
 
 class Enc(nn.Module):
     def __init__(self, nLatentDim, nClasses, nRef, nch, gpu_ids, opt=None):
