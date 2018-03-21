@@ -9,55 +9,100 @@ import pdb
 class trainer(object):
     def __init__(self, dp, opt):
         
-        gpu_id = opt.gpu_ids[0]
-        
-        self.x = Variable(dp.get_images(range(0, opt.batch_size),'train').cuda(gpu_id))
+        if opt.use_gpu:
+            gpu_id = opt.gpu_ids[0]
             
-        if opt.nRef > 0:
-            self.ref = Variable(dp.get_ref(range(0, opt.batch_size), train_or_test='train').type_as(self.x.data).cuda(gpu_id))
-        else:
-            self.ref = None
-        
-        self.zReal = Variable(torch.Tensor(opt.batch_size, opt.nlatentdim).type_as(self.x.data).cuda(gpu_id))
-        
-        
-        #zReal is nClasses + 1
-        if opt.nClasses == 0:
-            self.y_zReal = Variable(torch.Tensor(opt.batch_size, 1).type_as(self.x.data).cuda(gpu_id))
-            self.y_zReal.data.fill_(1)
+            self.x = Variable(dp.get_images(range(0, opt.batch_size),'train').cuda(gpu_id))
+                
+            if opt.nRef > 0:
+                self.ref = Variable(dp.get_ref(range(0, opt.batch_size), train_or_test='train').type_as(self.x.data).cuda(gpu_id))
+            else:
+                self.ref = None
             
-            self.y_zFake = Variable(torch.Tensor(opt.batch_size, 1).type_as(self.x.data).cuda(gpu_id))
-            self.y_zFake.data.fill_(0)
-            #zFake is nClasses (either 0 (no classification), or opt.nClasses (multi class))
-            
-            self.y_xReal = self.y_zReal
-            self.y_xFake = self.y_zFake
+            self.zReal = Variable(torch.Tensor(opt.batch_size, opt.nlatentdim).type_as(self.x.data).cuda(gpu_id))
             
             
-        else:    
-            self.y_zReal = Variable(torch.LongTensor(opt.batch_size).cuda(gpu_id))
-            self.y_zReal.data.fill_(opt.nClasses)
-            
-            self.y_zFake = Variable(torch.LongTensor(opt.batch_size).cuda(gpu_id))
-            #dont do anything with y_zFake since it gets filled from the dataprovider
-            #self.y_zFake
-            
-
-            self.y_xFake = Variable(torch.LongTensor(opt.batch_size).cuda(gpu_id))
-            self.y_xFake.data.fill_(opt.nClasses)
-            
-            self.y_xReal = Variable(torch.LongTensor(opt.batch_size).cuda(gpu_id))
-            #dont do anything with y_xReal since it gets filled from the dataprovider
-            #self.y_xReal
+            #zReal is nClasses + 1
+            if opt.nClasses == 0:
+                self.y_zReal = Variable(torch.Tensor(opt.batch_size, 1).type_as(self.x.data).cuda(gpu_id))
+                self.y_zReal.data.fill_(1)
+                
+                self.y_zFake = Variable(torch.Tensor(opt.batch_size, 1).type_as(self.x.data).cuda(gpu_id))
+                self.y_zFake.data.fill_(0)
+                #zFake is nClasses (either 0 (no classification), or opt.nClasses (multi class))
+                
+                self.y_xReal = self.y_zReal
+                self.y_xFake = self.y_zFake
+                
+                
+            else:    
+                self.y_zReal = Variable(torch.LongTensor(opt.batch_size).cuda(gpu_id))
+                self.y_zReal.data.fill_(opt.nClasses)
+                
+                self.y_zFake = Variable(torch.LongTensor(opt.batch_size).cuda(gpu_id))
+                #dont do anything with y_zFake since it gets filled from the dataprovider
+                #self.y_zFake
+                
     
-            self.classes = Variable(torch.LongTensor(opt.batch_size).cuda(gpu_id))
+                self.y_xFake = Variable(torch.LongTensor(opt.batch_size).cuda(gpu_id))
+                self.y_xFake.data.fill_(opt.nClasses)
+                
+                self.y_xReal = Variable(torch.LongTensor(opt.batch_size).cuda(gpu_id))
+                #dont do anything with y_xReal since it gets filled from the dataprovider
+                #self.y_xReal
+        
+                self.classes = Variable(torch.LongTensor(opt.batch_size).cuda(gpu_id))
+        
+        else:  
+            self.x = Variable(dp.get_images(range(0, opt.batch_size),'train'))
+                
+            if opt.nRef > 0:
+                self.ref = Variable(dp.get_ref(range(0, opt.batch_size), train_or_test='train').type_as(self.x.data))
+            else:
+                self.ref = None
+            
+            self.zReal = Variable(torch.Tensor(opt.batch_size, opt.nlatentdim).type_as(self.x.data))
+            
+            
+            #zReal is nClasses + 1
+            if opt.nClasses == 0:
+                self.y_zReal = Variable(torch.Tensor(opt.batch_size, 1).type_as(self.x.data))
+                self.y_zReal.data.fill_(1)
+                
+                self.y_zFake = Variable(torch.Tensor(opt.batch_size, 1).type_as(self.x.data)))
+                self.y_zFake.data.fill_(0)
+                #zFake is nClasses (either 0 (no classification), or opt.nClasses (multi class))
+                
+                self.y_xReal = self.y_zReal
+                self.y_xFake = self.y_zFake
+                
+                
+            else:    
+                self.y_zReal = Variable(torch.LongTensor(opt.batch_size))
+                self.y_zReal.data.fill_(opt.nClasses)
+                
+                self.y_zFake = Variable(torch.LongTensor(opt.batch_size))
+                #dont do anything with y_zFake since it gets filled from the dataprovider
+                #self.y_zFake
+                
+    
+                self.y_xFake = Variable(torch.LongTensor(opt.batch_size))
+                self.y_xFake.data.fill_(opt.nClasses)
+                
+                self.y_xReal = Variable(torch.LongTensor(opt.batch_size))
+                #dont do anything with y_xReal since it gets filled from the dataprovider
+                #self.y_xReal
+        
+                self.classes = Variable(torch.LongTensor(opt.batch_size))
         
     def iteration(self, 
                   enc, dec, encD, decD, 
                   optEnc, optDec, optEncD, optDecD, 
                   critRecon, critZClass, critZRef, critEncD, critDecD,
                   dataProvider, opt):
-        gpu_id = opt.gpu_ids[0]
+
+        if opt.use_gpu:
+            gpu_id = opt.gpu_ids[0]
 
         #do this just incase anything upstream changes these values
         enc.train(True)
@@ -246,12 +291,17 @@ class trainer(object):
         if opt.nClasses > 0:
             shuffle_inds = np.arange(0, zAll[0].size(0))
             
-            classes_one_hot = Variable((dataProvider.get_classes(inds,'train', 'one hot') - 1) * 25).type_as(zAll[c].data).cuda(opt.gpu_ids[0]) 
-            
-            np.random.shuffle(shuffle_inds)
-            zAll[c] = classes_one_hot[shuffle_inds,:]
-            y_xReal = y_xReal[torch.LongTensor(shuffle_inds).cuda(opt.gpu_ids[0])]
-            
+            if opt.use_gpu:
+                classes_one_hot = Variable((dataProvider.get_classes(inds,'train', 'one hot') - 1) * 25).type_as(zAll[c].data).cuda(opt.gpu_ids[0]) 
+                np.random.shuffle(shuffle_inds)
+                zAll[c] = classes_one_hot[shuffle_inds,:]
+                y_xReal = y_xReal[torch.LongTensor(shuffle_inds).cuda(opt.gpu_ids[0])]
+            else:
+                classes_one_hot = Variable((dataProvider.get_classes(inds,'train', 'one hot') - 1) * 25).type_as(zAll[c].data) 
+                np.random.shuffle(shuffle_inds)
+                zAll[c] = classes_one_hot[shuffle_inds,:]
+                y_xReal = y_xReal[torch.LongTensor(shuffle_inds)]
+                
             c +=1
             
         if opt.nRef > 0:
