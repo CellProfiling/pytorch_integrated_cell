@@ -36,6 +36,7 @@ import pdb
 parser = argparse.ArgumentParser()
 parser.add_argument('--Diters', type=int, default=5, help='niters for the encD')
 parser.add_argument('--DitersAlt', type=int, default=100, help='niters for the encD')
+parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')
 parser.add_argument('--gpu_ids', nargs='+', type=int, default=0, help='gpu id')
 parser.add_argument('--myseed', type=int, default=0, help='random seed')
 parser.add_argument('--nlatentdim', type=int, default=16, help='number of latent dimensions')
@@ -74,7 +75,7 @@ parser.add_argument('--dtype', default='float', help='data type that the datapro
 opt = parser.parse_args()
 print(opt)
 
-use_gpu = torch.cuda.is_available()
+opt.use_gpu = torch.cuda.is_available()
 
 if use_gpu:
     os.environ['CUDA_VISIBLE_DEVICES'] = ','.join([str(ID) for ID in opt.gpu_ids])
