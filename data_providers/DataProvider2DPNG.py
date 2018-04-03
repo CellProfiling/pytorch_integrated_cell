@@ -58,31 +58,14 @@ class DataProvider(DataProviderABC):
         self.data['train'] = {}
         self.data['train']['inds'] = rand_inds[ntest+2:-1]
         
-        images = list()
-        c = 0
-        for image_path in image_paths:
-            img = self.open_image(image_path)
-            images.append(img)
-            c += 1
-            
-        print("Image load " + str(c) + '/' + str(len(image_paths)))
-        if self.opts['verbose']:
-            print('{0} images are present in shape {1}'.format(len(image_paths),img.shape))
-        print(images.dtype)
-        images = np.concatenate(images, 0)
-        breakme
-        images = torch.FloatTensor(images)
-        self.all_images = images
-        self.imsize = self.all_images[0].size()
-        print(self.imsize)
-        
+       
 
     def open_image(self, image_path):
         image = Image.open(image_path)
         img = np.asarray(image)
         img = np.float32(img)/255
         img = np.transpose(img, [2,0,1])
-        img = np.expand_dims(img, 0)
+#        img = np.expand_dims(img, 0)
 
         return img
 
@@ -99,21 +82,24 @@ class DataProvider(DataProviderABC):
         return self.labels_onehot.shape[1]
         
     def get_images(self, inds, train_or_test):
-        dims = list(self.all_images[0].size())
+        
+        dims = list(self.open_image(self.image_paths[0]).shape)
         dims[0] = len(self.opts['channelInds'])
         
         dims.insert(0, len(inds))
         print(dims)
         images = torch.zeros(tuple(dims))
-
+        
         c = 0
         for i in inds:
-            image = self.all_images[self.data[train_or_test]['inds'][i]]
+            image_path = self.image_paths[self.data[train_or_test]['inds'][i]]
+            image = self.open_image(image_path)
+            image = torch.from_numpy(image)
             images[c] = image.index_select(0, torch.LongTensor(self.opts['channelInds'])).clone()
             c += 1
 
         if self.opts['verbose']:
-            print('{0}/{1} files are loaded'.format(c,len(self.image_paths)))
+            print('{0}/{1} files are loaded with {2}'.format(c,len(self.image_paths),str(images.size())))
         
         return images
     
