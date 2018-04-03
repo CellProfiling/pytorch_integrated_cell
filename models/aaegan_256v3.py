@@ -7,19 +7,19 @@ ksize = 4
 dstep = 2
 
 class Enc(nn.Module):
-    def __init__(self, nLatentDim, nClasses, nRef, insize, nch, gpu_ids, opt=None):
+    def __init__(self, nLatentDim, nClasses, nRef, nch, gpu_ids, opt=None):
         super(Enc, self).__init__()
         
-        self.gpu_ids = gpu_ids
-        self.fcsize = insize/64
+        self.gpu_ids = -1 #gpu_ids
+        self.fcsize = 4
         
         self.nLatentDim = nLatentDim
         self.nClasses = nClasses
         self.nRef = nRef
-        
+
         self.main = nn.Sequential(
             nn.Conv2d(nch, 64, ksize, dstep, 1),
-            # nn.BatchNorm2d(64),
+            nn.BatchNorm2d(64),
         
             nn.PReLU(),
             nn.Conv2d(64, 128, ksize, dstep, 1),
@@ -47,30 +47,33 @@ class Enc(nn.Module):
         if self.nClasses > 0:
             self.classOut = nn.Sequential(
                 nn.Linear(1024*int(self.fcsize**2), self.nClasses),
-                nn.BatchNorm1d(self.nClasses),
+                #nn.BatchNorm1d(self.nClasses),
                 nn.LogSoftmax()
             )
         
         if self.nRef > 0:
             self.refOut = nn.Sequential(
                 nn.Linear(1024*int(self.fcsize**2), self.nRef),
-                nn.BatchNorm1d(self.nRef)
+                #nn.BatchNorm1d(self.nRef)
             )
         
         if self.nLatentDim > 0:
             self.latentOut = nn.Sequential(
                 nn.Linear(1024*int(self.fcsize**2), self.nLatentDim),
-                nn.BatchNorm1d(self.nLatentDim)
+                #nn.BatchNorm1d(self.nLatentDim)
             )
             
     def forward(self, x):
         # gpu_ids = None
         # if isinstance(x.data, torch.cuda.FloatTensor) and len(self.gpu_ids) > 1:
         gpu_ids = self.gpu_ids
-            
-        x = nn.parallel.data_parallel(self.main, x, gpu_ids)
-        x = x.view(x.size()[0], 1024*int(self.fcsize**2))
+        print(gpu_ids)    
         
+        print(x.size())
+        #x = self.main.forward(x)
+        x = nn.parallel.data_parallel(self.main, x, gpu_ids)
+        print(x.size())
+        x = x.view(x.size()[0], 1024*int(self.fcsize**2))
         xOut = list()
                 
         if self.nClasses > 0:
@@ -88,17 +91,17 @@ class Enc(nn.Module):
         return xOut
     
 class Dec(nn.Module):
-    def __init__(self, nLatentDim, nClasses, nRef, insize, nch, gpu_ids, opt=None):
+    def __init__(self, nLatentDim, nClasses, nRef, nch, gpu_ids, opt=None):
         super(Dec, self).__init__()
         
         self.gpu_ids = gpu_ids
-        self.fcsize = int(insize/64)
+        self.fcsize = 4
         
         self.nLatentDim = nLatentDim
         self.nClasses = nClasses
         self.nRef = nRef
         
-        self.fc = nn.Linear(self.nLatentDim + self.nClasses + self.nRef, 1024*int(self.fcsize**2))
+        self.fc = nn.Linear(self.nLatentDim + self.nClasses + self.nRef, 1024*int(self.fcsize*1*1))
         
         self.main = nn.Sequential(
             # nn.BatchNorm2d(1024),
@@ -143,11 +146,12 @@ class Dec(nn.Module):
         return x    
     
 class EncD(nn.Module):
-    def __init__(self, nlatentdim, gpu_ids, opt=None):
+    def __init__(self, nlatentdim, nClasses, gpu_ids, opt=None):
         super(EncD, self).__init__()
         
         nfc = 1024
         
+        self.nClasses = nClasses;
         self.gpu_ids = gpu_ids
         
         self.main = nn.Sequential(
@@ -163,7 +167,7 @@ class EncD(nn.Module):
             nn.BatchNorm1d(512),
             nn.LeakyReLU(0.2, inplace=True),
         
-            nn.Linear(512, 1),
+            nn.Linear(512, nClasses),
             nn.Sigmoid()
         )
 
@@ -177,7 +181,7 @@ class EncD(nn.Module):
         return x        
 
 class DecD(nn.Module):
-    def __init__(self, nout, insize, nch, gpu_ids, opt=None):
+    def __init__(self, nout, nch, gpu_ids, opt=None):
         super(DecD, self).__init__()
         
         def opt_default(): 1
@@ -187,7 +191,7 @@ class DecD(nn.Module):
         self.opt = init_opts(opt, opt_default)
         
         self.gpu_ids = gpu_ids
-        self.fcsize = insize/64
+        self.fcsize = 4
         
         self.noise = torch.zeros(0)
         
