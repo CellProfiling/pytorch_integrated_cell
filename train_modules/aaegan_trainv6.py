@@ -69,7 +69,7 @@ class trainer(object):
                 self.y_zReal = Variable(torch.Tensor(opt.batch_size, 1).type_as(self.x.data))
                 self.y_zReal.data.fill_(1)
                 
-                self.y_zFake = Variable(torch.Tensor(opt.batch_size, 1).type_as(self.x.data)))
+                self.y_zFake = Variable(torch.Tensor(opt.batch_size, 1).type_as(self.x.data))
                 self.y_zFake.data.fill_(0)
                 #zFake is nClasses (either 0 (no classification), or opt.nClasses (multi class))
                 
