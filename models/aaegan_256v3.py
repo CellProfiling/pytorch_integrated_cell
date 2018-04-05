@@ -10,7 +10,7 @@ class Enc(nn.Module):
     def __init__(self, nLatentDim, nClasses, nRef, nch, gpu_ids, opt=None):
         super(Enc, self).__init__()
         
-        self.gpu_ids = -1 #gpu_ids
+        self.gpu_ids = gpu_ids
         self.fcsize = 4
         
         self.nLatentDim = nLatentDim
@@ -67,13 +67,11 @@ class Enc(nn.Module):
         # gpu_ids = None
         # if isinstance(x.data, torch.cuda.FloatTensor) and len(self.gpu_ids) > 1:
         gpu_ids = self.gpu_ids
-        print(gpu_ids)    
         
-        print(x.size())
-        #x = self.main.forward(x)
         x = nn.parallel.data_parallel(self.main, x, gpu_ids)
-        print(x.size())
+        #print('x size out '+str(x.size()))
         x = x.view(x.size()[0], 1024*int(self.fcsize**2))
+        
         xOut = list()
                 
         if self.nClasses > 0:
@@ -101,7 +99,7 @@ class Dec(nn.Module):
         self.nClasses = nClasses
         self.nRef = nRef
         
-        self.fc = nn.Linear(self.nLatentDim + self.nClasses + self.nRef, 1024*int(self.fcsize*1*1))
+        self.fc = nn.Linear(self.nLatentDim + self.nClasses + self.nRef, 1024*int(self.fcsize**2))
         
         self.main = nn.Sequential(
             # nn.BatchNorm2d(1024),
@@ -136,13 +134,16 @@ class Dec(nn.Module):
         # gpu_ids = None
         # if isinstance(x.data, torch.cuda.FloatTensor) and len(self.gpu_ids) > 1:
         gpu_ids = self.gpu_ids
-        
+
         x = torch.cat(xIn, 1)
-        
+        #print('X size input to decoder after concatenation '+str(x.size()))
         x = self.fc(x)
+        #print('X size after passing through fully connected layer '+str(x.size()))
         x = x.view(x.size()[0], 1024, self.fcsize, self.fcsize)
+        #print('X reshape to size of ' + str(x.size()))
+        
         x = nn.parallel.data_parallel(self.main, x, gpu_ids)
- 
+        #print(x.size())
         return x    
     
 class EncD(nn.Module):
