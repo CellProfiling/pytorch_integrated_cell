@@ -23,7 +23,7 @@ import torchvision.utils
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-#from IPython import display
+from IPython import display
 import time
 
 import model_utils
@@ -77,7 +77,7 @@ print(opt)
 
 opt.use_gpu = torch.cuda.is_available()
 
-if use_gpu:
+if opt.use_gpu:
     os.environ['CUDA_VISIBLE_DEVICES'] = ','.join([str(ID) for ID in opt.gpu_ids])
     opt.gpu_ids = list(range(0, len(opt.gpu_ids)))
 
@@ -153,6 +153,7 @@ for this_iter in range(start_iter, math.ceil(iters_per_epoch)*opt.nepochs):
     
     if model_utils.maybe_save(epoch, epoch_next, models, optimizers, logger, zAll, dp, opt):
         zAll = list()
+
 
 #######
 ### DONE TRAINING REFERENCE MODEL
