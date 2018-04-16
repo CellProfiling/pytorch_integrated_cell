@@ -39,7 +39,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--parent_dir', help='save dir')
 parser.add_argument('--gpu_ids', nargs='+', type=int, default=[0], help='gpu id')
-parser.add_argument('--batch_size', type=int, default=200, help='gpu id')
+parser.add_argument('--batch_size', type=int, default=200, help='batch size')
 parser.add_argument('--overwrite', type=bool, default=False, help='overwrite?')
 args = parser.parse_args()
 
@@ -53,6 +53,7 @@ if not os.path.exists(save_dir):
 
 # logger_file = '{0}/logger_tmp.pkl'.format(model_dir)
 opt = pickle.load(open( '{0}/opt.pkl'.format(model_dir), "rb" ))
+opt.data_save_path = args.parent_dir + os.sep + 'data.pyt'
 print(opt)
 
 opt.gpu_ids = args.gpu_ids
@@ -77,7 +78,7 @@ opt.nRef = opt.nlatentdim
 models, _, _, _, opt = model_utils.load_model(opt.model_name, opt)
 
 opt.batch_size = args.batch_size
-
+print(opt.batch_size)
 enc = models['enc']
 dec = models['dec']
 enc.train(False)
@@ -212,7 +213,7 @@ else:
 
             npts = len(i)
             # Load the image
-            class_ids = dp.get_classes(i, train_or_test)
+            class_ids = dp.get_classes(i, train_or_test).cuda()
 
             classes = Variable(torch.Tensor(npts, opt.nClasses).fill_(-25).cuda(gpu_id), volatile=True)
             
