@@ -53,6 +53,7 @@ if not os.path.exists(save_dir):
 
 # logger_file = '{0}/logger_tmp.pkl'.format(model_dir)
 opt = pickle.load(open( '{0}/opt.pkl'.format(model_dir), "rb" ))
+opt.save_dir=model_dir
 opt.data_save_path = args.parent_dir + os.sep + 'data.pyt'
 print(opt)
 
@@ -65,7 +66,7 @@ np.random.seed(opt.myseed)
 dp = model_utils.load_data_provider(opt.data_save_path, opt.imdir, opt.dataProvider)
 
 #######    
-### Load REFERENCE MODEL
+### Load trained MODEL
 #######
 
 opt.channelInds = [0, 1, 2]
@@ -139,7 +140,7 @@ else:
             pred_log_probs[i,:] = p
 
         im_class_log_probs[train_or_test] = pred_log_probs
-
+    print(im_class_log_probs['test'])
     # save test and train preds
 
     with open(fname, 'wb') as handle:
@@ -226,7 +227,9 @@ else:
 
             # generate a fake cell of corresponding class
             img_in = dec([classes, ref, struct])
-
+            
+            print(img_in)
+            #breakme
             # pass forward through the model
             z = enc(img_in)
             p = z[0].data.cpu().numpy()
