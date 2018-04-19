@@ -21,4 +21,7 @@ class DataProviderABC(ABC):
     @abstractmethod
     def get_classes(self, inds, train_or_test):
         pass
-    
+
+    @abstractmethod
+    def get_image_paths(self, inds, train_or_test):
+        pass    
