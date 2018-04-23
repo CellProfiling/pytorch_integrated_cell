@@ -25,7 +25,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 from IPython import display
 import time
-
+start_time = time.time()
 import model_utils
 
 import torch.backends.cudnn as cudnn
@@ -153,7 +153,7 @@ for this_iter in range(start_iter, math.ceil(iters_per_epoch)*opt.nepochs):
     
     if model_utils.maybe_save(epoch, epoch_next, models, optimizers, logger, zAll, dp, opt):
         zAll = list()
-
+print(zAll)
 
 #######
 ### DONE TRAINING REFERENCE MODEL
@@ -223,7 +223,7 @@ for this_iter in range(start_iter, math.ceil(iters_per_epoch)*opt.nepochs_pt2):
     
     if model_utils.maybe_save(epoch, epoch_next, models, optimizers, logger, zAll, dp, opt):
         zAll = list()
-            
+print(zAll)            
 print('Finished Training')
 
 embeddings_path = opt.save_dir + os.sep + 'embeddings.pkl'
@@ -232,4 +232,4 @@ embeddings = model_utils.load_embeddings(embeddings_path, models['enc'], dp, opt
 #######    
 ### DONE TRAINING STRUCTURE MODEL
 #######
-
+print("----- %s hours -----" %(round(((time.time() - start_time)/60/60),2)))
