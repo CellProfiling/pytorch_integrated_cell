@@ -266,6 +266,15 @@ class trainer(object):
         reconLoss.backward(retain_graph=True)        
         reconLoss = reconLoss.data[0]
         
+        if x.data.cpu().numpy().shape[1]==3:
+            x_protein = x.data[:,1,:,:]
+            xHat_protein = xHat.data[:,1,:,:]
+            reconLoss_p = critRecon(xHat_protein, x_protein)
+            reconLoss_p.backward(retain_graph=True)
+            reconLoss_p = reconLoss_p.data[0]
+        else:
+            reconLoss_p = torch.tensor(0)  
+        
         ### update wrt encD
         yHat_zFake = encD(zAll[c])
         minimaxEncDLoss = critEncD(yHat_zFake, y_zReal)
@@ -324,7 +333,7 @@ class trainer(object):
         
         optDec.step()
         
-        errors = (reconLoss,)
+        errors = (reconLoss,reconLoss_p,)
         if opt.nClasses > 0:
             errors += (classLoss,)
 
