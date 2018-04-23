@@ -200,8 +200,8 @@ def load_model(model_name, opt):
         optDecD = optim.Adam(decD.parameters(), lr=opt.lrDecD, betas=(0.5, 0.999))
     
     
-    columns = ('epoch', 'iter', 'reconLoss',)
-    print_str = '[%d][%d] reconLoss: %.6f'
+    columns = ('epoch', 'iter', 'reconLoss', 'reconLoss_p',)
+    print_str = '[%d][%d] reconLoss: %.6f reconLoss_p: %.6f'
     
     if opt.nClasses > 0:
         columns += ('classLoss',)
