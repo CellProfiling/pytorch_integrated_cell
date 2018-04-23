@@ -87,7 +87,7 @@ class DataProvider(DataProviderABC):
         dims[0] = len(self.opts['channelInds'])
         
         dims.insert(0, len(inds))
-        print(dims)
+
         images = torch.zeros(tuple(dims))
         
         c = 0
@@ -127,8 +127,10 @@ class DataProvider(DataProviderABC):
         
         return self.get_images(inds, train_or_test)
 
-    def get_image_paths(self,inds_tt,train_or_test):
+    def get_image_paths(self,inds,train_or_test):
         image_paths = list()
-        for image_dir in image_dirs:
-            image_paths += natsorted(glob.glob(image_dir + os.sep + '*.h5'))
-        return image_paths    
+        #for image_dir in image_dirs:
+        #image_paths += natsorted(glob.glob(image_dir + os.sep + '*.h5'))
+        for i in inds:
+            image_paths.append(self.image_paths[self.data[train_or_test]['inds'][i]])
+        return image_paths
